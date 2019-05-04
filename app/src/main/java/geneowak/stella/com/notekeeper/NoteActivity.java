@@ -1,15 +1,21 @@
 package geneowak.stella.com.notekeeper;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.support.design.widget.FloatingActionButton;
-import android.support.design.widget.Snackbar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
-import android.view.View;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ArrayAdapter;
+import android.widget.EditText;
+import android.widget.Spinner;
+
+import java.util.List;
 
 public class NoteActivity extends AppCompatActivity {
+    public static final String NOTE_INFO = "geneowak.stella.com.notekeeper.NOTE_INFO";
+    private NoteInfo mNote;
+    private boolean mIsNewNote;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -18,14 +24,39 @@ public class NoteActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        FloatingActionButton fab = findViewById(R.id.fab);
-        fab.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-                        .setAction("Action", null).show();
-            }
-        });
+        Spinner spinnerCourses = findViewById(R.id.spinner_courses);
+
+        List<CourseInfo> courses = DataManager.getInstance().getCourses();
+        // create adapter to associate list with spinner
+        ArrayAdapter<CourseInfo> adapterCourses =
+                new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, courses);
+        // associate the resource to be used for the dropdown courses
+        adapterCourses.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        // associate adapter with spinner
+        spinnerCourses.setAdapter(adapterCourses);
+
+        readDisplayStateValues();
+
+        if (!mIsNewNote) {
+            EditText textNoteTitle = findViewById(R.id.text_note_title);
+            EditText textNoteText = findViewById(R.id.text_note_text);
+
+            displayNote(spinnerCourses, textNoteTitle, textNoteText);
+        }
+    }
+
+    private void displayNote(Spinner spinnerCourses, EditText textNoteTitle, EditText textNoteText) {
+        List<CourseInfo> courses = DataManager.getInstance().getCourses();
+        int courseIndex = courses.indexOf(mNote.getCourse());
+        spinnerCourses.setSelection(courseIndex);
+        textNoteTitle.setText(mNote.getTitle());
+        textNoteText.setText(mNote.getText());
+    }
+
+    private void readDisplayStateValues() {
+        Intent intent = getIntent();
+        mNote = intent.getParcelableExtra(NOTE_INFO);
+        mIsNewNote = mNote == null;
     }
 
     @Override
