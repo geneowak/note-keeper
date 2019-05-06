@@ -1,6 +1,7 @@
 package geneowak.stella.com.notekeeper;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -17,6 +18,9 @@ public class NoteActivity extends AppCompatActivity {
     public static final int POSITION_NOT_SET = -1;
     private NoteInfo mNote;
     private boolean mIsNewNote;
+    private Spinner spinnerCourses;
+    private EditText textNoteTitle;
+    private EditText textNoteText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -25,7 +29,7 @@ public class NoteActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        Spinner spinnerCourses = findViewById(R.id.spinner_courses);
+        spinnerCourses = findViewById(R.id.spinner_courses);
 
         List<CourseInfo> courses = DataManager.getInstance().getCourses();
         // create adapter to associate list with spinner
@@ -38,12 +42,11 @@ public class NoteActivity extends AppCompatActivity {
 
         readDisplayStateValues();
 
-        if (!mIsNewNote) {
-            EditText textNoteTitle = findViewById(R.id.text_note_title);
-            EditText textNoteText = findViewById(R.id.text_note_text);
+        textNoteTitle = findViewById(R.id.text_note_title);
+        textNoteText = findViewById(R.id.text_note_text);
 
+        if (!mIsNewNote)
             displayNote(spinnerCourses, textNoteTitle, textNoteText);
-        }
     }
 
     private void displayNote(Spinner spinnerCourses, EditText textNoteTitle, EditText textNoteText) {
@@ -78,10 +81,26 @@ public class NoteActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_send_email) {
+            sendEmail();
             return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    private void sendEmail() {
+        CourseInfo course = (CourseInfo) spinnerCourses.getSelectedItem();
+        String subject = textNoteTitle.getText().toString();
+        String text = "Checkout what I learned in the Pluralsight course\"" +
+                course.getTitle() + "\" \n " + textNoteText.getText().toString();
+        Intent intent = new Intent(Intent.ACTION_SENDTO);
+//        intent.setType("message/rfc2822");
+        intent.setData(Uri.parse("mailto:")); // only email apps should handle this
+        intent.putExtra(Intent.EXTRA_SUBJECT, subject);
+        intent.putExtra(Intent.EXTRA_TEXT, text);
+        // only start activity if the system has apps that can handle it
+        if (intent.resolveActivity(getPackageManager()) != null)
+            startActivity(intent);
     }
 }
