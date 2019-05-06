@@ -1,6 +1,7 @@
 package geneowak.stella.com.notekeeper;
 
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
@@ -13,9 +14,15 @@ import android.widget.Spinner;
 import java.util.List;
 
 public class NoteActivity extends AppCompatActivity {
-    public static final String NOTE_INFO = "geneowak.stella.com.notekeeper.NOTE_INFO";
-    private NoteInfo mNote;
-    private boolean mIsNewNote;
+    public static final String NOTE_POSITION = "geneowak.stella.com.notekeeper.NOTE_POSITION";
+    public static final int POSITION_NOT_SET = -1;
+    private NoteInfo note;
+    private boolean isNewNote;
+    private Spinner spinnerCourses;
+    private EditText textNoteTitle;
+    private EditText textNoteText;
+    private int notePosition;
+    private boolean isCancelling;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -24,7 +31,7 @@ public class NoteActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        Spinner spinnerCourses = findViewById(R.id.spinner_courses);
+        spinnerCourses = findViewById(R.id.spinner_courses);
 
         List<CourseInfo> courses = DataManager.getInstance().getCourses();
         // create adapter to associate list with spinner
@@ -37,26 +44,37 @@ public class NoteActivity extends AppCompatActivity {
 
         readDisplayStateValues();
 
-        if (!mIsNewNote) {
-            EditText textNoteTitle = findViewById(R.id.text_note_title);
-            EditText textNoteText = findViewById(R.id.text_note_text);
+        textNoteTitle = findViewById(R.id.text_note_title);
+        textNoteText = findViewById(R.id.text_note_text);
 
+        if (!isNewNote)
             displayNote(spinnerCourses, textNoteTitle, textNoteText);
-        }
     }
 
     private void displayNote(Spinner spinnerCourses, EditText textNoteTitle, EditText textNoteText) {
         List<CourseInfo> courses = DataManager.getInstance().getCourses();
-        int courseIndex = courses.indexOf(mNote.getCourse());
+        int courseIndex = courses.indexOf(note.getCourse());
         spinnerCourses.setSelection(courseIndex);
-        textNoteTitle.setText(mNote.getTitle());
-        textNoteText.setText(mNote.getText());
+        textNoteTitle.setText(note.getTitle());
+        textNoteText.setText(note.getText());
     }
 
     private void readDisplayStateValues() {
         Intent intent = getIntent();
-        mNote = intent.getParcelableExtra(NOTE_INFO);
-        mIsNewNote = mNote == null;
+        int position = intent.getIntExtra(NOTE_POSITION, POSITION_NOT_SET);
+        isNewNote = position == POSITION_NOT_SET;
+
+        if (isNewNote) {
+            createNewNote();
+        } else {
+            note = DataManager.getInstance().getNotes().get(position);
+        }
+    }
+
+    private void createNewNote() {
+        DataManager dm = DataManager.getInstance();
+        notePosition = dm.createNewNote();
+        note = dm.getNotes().get(notePosition);
     }
 
     @Override
@@ -74,10 +92,47 @@ public class NoteActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_send_email) {
+            sendEmail();
             return true;
+        } else if (id == R.id.action_cancel) {
+            isCancelling = true;
+            finish();
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (isCancelling) {
+            if (isNewNote) {
+                DataManager.getInstance().removeNote(notePosition);
+            }
+        } else {
+            saveNote();
+        }
+    }
+
+    private void saveNote() {
+        note.setCourse((CourseInfo) spinnerCourses.getSelectedItem());
+        note.setTitle(textNoteTitle.getText().toString());
+        note.setText(textNoteText.getText().toString());
+    }
+
+    private void sendEmail() {
+        CourseInfo course = (CourseInfo) spinnerCourses.getSelectedItem();
+        String subject = textNoteTitle.getText().toString();
+        String text = "Checkout what I learned in the Pluralsight course\"" +
+                course.getTitle() + "\" \n " + textNoteText.getText().toString();
+        Intent intent = new Intent(Intent.ACTION_SENDTO);
+//        intent.setType("message/rfc2822");
+        intent.setData(Uri.parse("mailto:")); // only email apps should handle this
+        intent.putExtra(Intent.EXTRA_SUBJECT, subject);
+        intent.putExtra(Intent.EXTRA_TEXT, text);
+        // only start activity if the system has apps that can handle it
+        if (intent.resolveActivity(getPackageManager()) != null)
+            startActivity(intent);
     }
 }
