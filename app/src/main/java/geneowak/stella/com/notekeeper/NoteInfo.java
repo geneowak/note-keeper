@@ -8,14 +8,14 @@ import android.os.Parcelable;
  */
 
 public final class NoteInfo implements Parcelable {
-    private CourseInfo mCourse;
-    private String mTitle;
-    private String mText;
+    private CourseInfo eCourse;
+    private String eTitle;
+    private String eText;
 
     public NoteInfo(CourseInfo course, String title, String text) {
-        mCourse = course;
-        mTitle = title;
-        mText = text;
+        eCourse = course;
+        eTitle = title;
+        eText = text;
     }
 
     public final static Parcelable.Creator<NoteInfo> CREATOR = new Parcelable.Creator<NoteInfo>() {
@@ -30,32 +30,34 @@ public final class NoteInfo implements Parcelable {
         }
     };
 
+    private NoteInfo(Parcel parcel) {
+        eCourse = parcel.readParcelable(CourseInfo.class.getClassLoader());
+        eTitle = parcel.readString();
+        eText = parcel.readString();
+    }
+
     public CourseInfo getCourse() {
-        return mCourse;
+        return eCourse;
     }
 
     public void setCourse(CourseInfo course) {
-        mCourse = course;
+        eCourse = course;
     }
 
     public String getTitle() {
-        return mTitle;
+        return eTitle;
     }
 
     public void setTitle(String title) {
-        mTitle = title;
+        eTitle = title;
     }
 
     public String getText() {
-        return mText;
+        return eText;
     }
 
     public void setText(String text) {
-        mText = text;
-    }
-
-    private String getCompareKey() {
-        return mCourse.getCourseId() + "|" + mTitle + "|" + mText;
+        eText = text;
     }
 
     @Override
@@ -78,10 +80,8 @@ public final class NoteInfo implements Parcelable {
         return getCompareKey();
     }
 
-    private NoteInfo(Parcel parcel) {
-        mCourse = parcel.readParcelable(CourseInfo.class.getClassLoader());
-        mTitle = parcel.readString();
-        mText = parcel.readString();
+    private String getCompareKey() {
+        return eCourse.getCourseId() + "|" + eTitle + "|" + eText;
     }
 
     @Override
@@ -91,8 +91,8 @@ public final class NoteInfo implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeParcelable(mCourse, 0);
-        parcel.writeString(mTitle);
-        parcel.writeString(mText);
+        parcel.writeParcelable(eCourse, 0);
+        parcel.writeString(eTitle);
+        parcel.writeString(eText);
     }
 }

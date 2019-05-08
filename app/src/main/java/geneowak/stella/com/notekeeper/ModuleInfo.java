@@ -8,18 +8,18 @@ import android.os.Parcelable;
  */
 
 public final class ModuleInfo implements Parcelable {
-    private final String mModuleId;
-    private final String mTitle;
-    private boolean mIsComplete = false;
+    private final String eModuleId;
+    private final String eTitle;
+    private boolean eIsComplete = false;
 
     public ModuleInfo(String moduleId, String title) {
         this(moduleId, title, false);
     }
 
     public ModuleInfo(String moduleId, String title, boolean isComplete) {
-        mModuleId = moduleId;
-        mTitle = title;
-        mIsComplete = isComplete;
+        eModuleId = moduleId;
+        eTitle = title;
+        eIsComplete = isComplete;
     }
 
     public final static Parcelable.Creator<ModuleInfo> CREATOR = new Creator<ModuleInfo>() {
@@ -34,25 +34,31 @@ public final class ModuleInfo implements Parcelable {
         }
     };
 
+    private ModuleInfo(Parcel source) {
+        eModuleId = source.readString();
+        eTitle = source.readString();
+        eIsComplete = source.readByte() == 1;
+    }
+
     public String getModuleId() {
-        return mModuleId;
+        return eModuleId;
     }
 
     public String getTitle() {
-        return mTitle;
+        return eTitle;
     }
 
     public boolean isComplete() {
-        return mIsComplete;
+        return eIsComplete;
     }
 
     public void setComplete(boolean complete) {
-        mIsComplete = complete;
+        eIsComplete = complete;
     }
 
     @Override
     public String toString() {
-        return mTitle;
+        return eTitle;
     }
 
     @Override
@@ -62,18 +68,12 @@ public final class ModuleInfo implements Parcelable {
 
         ModuleInfo that = (ModuleInfo) o;
 
-        return mModuleId.equals(that.mModuleId);
+        return eModuleId.equals(that.eModuleId);
     }
 
     @Override
     public int hashCode() {
-        return mModuleId.hashCode();
-    }
-
-    private ModuleInfo(Parcel source) {
-        mModuleId = source.readString();
-        mTitle = source.readString();
-        mIsComplete = source.readByte() == 1;
+        return eModuleId.hashCode();
     }
 
     @Override
@@ -83,8 +83,8 @@ public final class ModuleInfo implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeString(mModuleId);
-        parcel.writeString(mTitle);
-        parcel.writeByte((byte) (mIsComplete ? 1 : 0));
+        parcel.writeString(eModuleId);
+        parcel.writeString(eTitle);
+        parcel.writeByte((byte) (eIsComplete ? 1 : 0));
     }
 }

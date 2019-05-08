@@ -5,6 +5,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.Toolbar;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ArrayAdapter;
@@ -14,21 +15,22 @@ import android.widget.Spinner;
 import java.util.List;
 
 public class NoteActivity extends AppCompatActivity {
+    public final String TAG = getClass().getSimpleName();
     public static final String NOTE_POSITION = "geneowak.stella.com.notekeeper.NOTE_POSITION";
     public static final String ORIGINAL_NOTE_COURSE_ID = "geneowak.stella.com.notekeeper.ORIGINAL_NOTE_COURSE_ID";
     public static final String ORIGINAL_NOTE_TITLE = "geneowak.stella.com.notekeeper.ORIGINAL_NOTE_TITLE";
     public static final String ORIGINAL_NOTE_TEXT = "geneowak.stella.com.notekeeper.ORIGINAL_NOTE_TEXT";
     public static final int POSITION_NOT_SET = -1;
-    private NoteInfo note;
-    private boolean isNewNote;
-    private Spinner spinnerCourses;
-    private EditText textNoteTitle;
-    private EditText textNoteText;
-    private int notePosition;
-    private boolean isCancelling;
-    private String originalCourseId;
-    private String originalNoteTitle;
-    private String originalNoteText;
+    private NoteInfo eNote;
+    private boolean eIsNewNote;
+    private Spinner eSpinnerCourses;
+    private EditText eTextNoteTitle;
+    private EditText eTextNoteText;
+    private int eNotePosition;
+    private boolean eIsCancelling;
+    private String eOriginalCourseId;
+    private String eOriginalNoteTitle;
+    private String eOriginalNoteText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -37,7 +39,7 @@ public class NoteActivity extends AppCompatActivity {
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-        spinnerCourses = findViewById(R.id.spinner_courses);
+        eSpinnerCourses = findViewById(R.id.spinner_courses);
 
         List<CourseInfo> courses = DataManager.getInstance().getCourses();
         // create adapter to associate list with spinner
@@ -46,7 +48,7 @@ public class NoteActivity extends AppCompatActivity {
         // associate the resource to be used for the dropdown courses
         adapterCourses.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         // associate adapter with spinner
-        spinnerCourses.setAdapter(adapterCourses);
+        eSpinnerCourses.setAdapter(adapterCourses);
 
         readDisplayStateValues();
         if (savedInstanceState == null) {
@@ -56,59 +58,63 @@ public class NoteActivity extends AppCompatActivity {
 
         }
 
-        textNoteTitle = findViewById(R.id.text_note_title);
-        textNoteText = findViewById(R.id.text_note_text);
+        eTextNoteTitle = findViewById(R.id.text_note_title);
+        eTextNoteText = findViewById(R.id.text_note_text);
 
-        if (!isNewNote)
-            displayNote(spinnerCourses, textNoteTitle, textNoteText);
+        if (!eIsNewNote)
+            displayNote(eSpinnerCourses, eTextNoteTitle, eTextNoteText);
+
+        Log.d(TAG, "onCreate");
     }
 
     private void restoreOriginalNoteValues(Bundle savedInstanceState) {
-        originalCourseId = savedInstanceState.getString(ORIGINAL_NOTE_COURSE_ID);
-        originalNoteTitle = savedInstanceState.getString(ORIGINAL_NOTE_TITLE);
-        originalNoteText = savedInstanceState.getString(ORIGINAL_NOTE_TEXT);
+        eOriginalCourseId = savedInstanceState.getString(ORIGINAL_NOTE_COURSE_ID);
+        eOriginalNoteTitle = savedInstanceState.getString(ORIGINAL_NOTE_TITLE);
+        eOriginalNoteText = savedInstanceState.getString(ORIGINAL_NOTE_TEXT);
     }
 
     private void saveOriginalNoteValues() {
-        if (isNewNote)
+        if (eIsNewNote)
             return;
-        originalCourseId = note.getCourse().getCourseId();
-        originalNoteTitle = note.getTitle();
-        originalNoteText = note.getText();
+        eOriginalCourseId = eNote.getCourse().getCourseId();
+        eOriginalNoteTitle = eNote.getTitle();
+        eOriginalNoteText = eNote.getText();
     }
 
     @Override
     protected void onSaveInstanceState(Bundle outState) {
         super.onSaveInstanceState(outState);
-        outState.putString(ORIGINAL_NOTE_COURSE_ID, originalCourseId);
-        outState.putString(ORIGINAL_NOTE_TITLE, originalNoteTitle);
-        outState.putString(ORIGINAL_NOTE_TEXT, originalNoteText);
+        outState.putString(ORIGINAL_NOTE_COURSE_ID, eOriginalCourseId);
+        outState.putString(ORIGINAL_NOTE_TITLE, eOriginalNoteTitle);
+        outState.putString(ORIGINAL_NOTE_TEXT, eOriginalNoteText);
     }
 
     private void displayNote(Spinner spinnerCourses, EditText textNoteTitle, EditText textNoteText) {
         List<CourseInfo> courses = DataManager.getInstance().getCourses();
-        int courseIndex = courses.indexOf(note.getCourse());
+        int courseIndex = courses.indexOf(eNote.getCourse());
         spinnerCourses.setSelection(courseIndex);
-        textNoteTitle.setText(note.getTitle());
-        textNoteText.setText(note.getText());
+        textNoteTitle.setText(eNote.getTitle());
+        textNoteText.setText(eNote.getText());
     }
 
     private void readDisplayStateValues() {
         Intent intent = getIntent();
-        int position = intent.getIntExtra(NOTE_POSITION, POSITION_NOT_SET);
-        isNewNote = position == POSITION_NOT_SET;
+        eNotePosition = intent.getIntExtra(NOTE_POSITION, POSITION_NOT_SET);
+        eIsNewNote = eNotePosition == POSITION_NOT_SET;
 
-        if (isNewNote) {
+        if (eIsNewNote) {
             createNewNote();
-        } else {
-            note = DataManager.getInstance().getNotes().get(position);
         }
+
+        eNote = DataManager.getInstance().getNotes().get(eNotePosition);
+
+        Log.i(TAG, "eNotePosition: " + eNotePosition);
     }
 
     private void createNewNote() {
         DataManager dm = DataManager.getInstance();
-        notePosition = dm.createNewNote();
-        note = dm.getNotes().get(notePosition);
+        eNotePosition = dm.createNewNote();
+//        eNote = dm.getNotes().get(eNotePosition);
     }
 
     @Override
@@ -130,7 +136,7 @@ public class NoteActivity extends AppCompatActivity {
             sendEmail();
             return true;
         } else if (id == R.id.action_cancel) {
-            isCancelling = true;
+            eIsCancelling = true;
             finish();
         }
 
@@ -140,35 +146,38 @@ public class NoteActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
-        if (isCancelling) {
-            if (isNewNote) {
-                DataManager.getInstance().removeNote(notePosition);
+        if (eIsCancelling) {
+            Log.i(TAG, "Cancelling eNote at position: " + eNotePosition);
+            if (eIsNewNote) {
+                DataManager.getInstance().removeNote(eNotePosition);
             } else {
                 storePreviousNoteValues();
             }
         } else {
             saveNote();
         }
+
+        Log.d(TAG, "onPause");
     }
 
     private void storePreviousNoteValues() {
-        CourseInfo course = DataManager.getInstance().getCourse(originalCourseId);
-        note.setCourse(course);
-        note.setTitle(originalNoteTitle);
-        note.setText(originalNoteText);
+        CourseInfo course = DataManager.getInstance().getCourse(eOriginalCourseId);
+        eNote.setCourse(course);
+        eNote.setTitle(eOriginalNoteTitle);
+        eNote.setText(eOriginalNoteText);
     }
 
     private void saveNote() {
-        note.setCourse((CourseInfo) spinnerCourses.getSelectedItem());
-        note.setTitle(textNoteTitle.getText().toString());
-        note.setText(textNoteText.getText().toString());
+        eNote.setCourse((CourseInfo) eSpinnerCourses.getSelectedItem());
+        eNote.setTitle(eTextNoteTitle.getText().toString());
+        eNote.setText(eTextNoteText.getText().toString());
     }
 
     private void sendEmail() {
-        CourseInfo course = (CourseInfo) spinnerCourses.getSelectedItem();
-        String subject = textNoteTitle.getText().toString();
+        CourseInfo course = (CourseInfo) eSpinnerCourses.getSelectedItem();
+        String subject = eTextNoteTitle.getText().toString();
         String text = "Checkout what I learned in the Pluralsight course\"" +
-                course.getTitle() + "\" \n " + textNoteText.getText().toString();
+                course.getTitle() + "\" \n " + eTextNoteText.getText().toString();
         Intent intent = new Intent(Intent.ACTION_SENDTO);
 //        intent.setType("message/rfc2822");
         intent.setData(Uri.parse("mailto:")); // only email apps should handle this

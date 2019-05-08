@@ -11,14 +11,14 @@ import java.util.List;
  */
 
 public final class CourseInfo implements Parcelable {
-    private final String mCourseId;
-    private final String mTitle;
-    private final List<ModuleInfo> mModules;
+    private final String eCourseId;
+    private final String eTitle;
+    private final List<ModuleInfo> eModules;
 
     public CourseInfo(String courseId, String title, List<ModuleInfo> modules) {
-        mCourseId = courseId;
-        mTitle = title;
-        mModules = modules;
+        eCourseId = courseId;
+        eTitle = title;
+        eModules = modules;
     }
 
     public final static Parcelable.Creator<CourseInfo> CREATOR = new Parcelable.Creator<CourseInfo>() {
@@ -33,34 +33,41 @@ public final class CourseInfo implements Parcelable {
         }
     };
 
+    private CourseInfo(Parcel source) {
+        eTitle = source.readString();
+        eCourseId = source.readString();
+        eModules = new ArrayList<>();
+        source.readTypedList(eModules, ModuleInfo.CREATOR);
+    }
+
     public String getCourseId() {
-        return mCourseId;
+        return eCourseId;
     }
 
     public String getTitle() {
-        return mTitle;
+        return eTitle;
     }
 
     public List<ModuleInfo> getModules() {
-        return mModules;
+        return eModules;
     }
 
     public boolean[] getModulesCompletionStatus() {
-        boolean[] status = new boolean[mModules.size()];
+        boolean[] status = new boolean[eModules.size()];
 
-        for (int i = 0; i < mModules.size(); i++)
-            status[i] = mModules.get(i).isComplete();
+        for (int i = 0; i < eModules.size(); i++)
+            status[i] = eModules.get(i).isComplete();
 
         return status;
     }
 
     public void setModulesCompletionStatus(boolean[] status) {
-        for (int i = 0; i < mModules.size(); i++)
-            mModules.get(i).setComplete(status[i]);
+        for (int i = 0; i < eModules.size(); i++)
+            eModules.get(i).setComplete(status[i]);
     }
 
     public ModuleInfo getModule(String moduleId) {
-        for (ModuleInfo moduleInfo : mModules) {
+        for (ModuleInfo moduleInfo : eModules) {
             if (moduleId.equals(moduleInfo.getModuleId()))
                 return moduleInfo;
         }
@@ -69,7 +76,7 @@ public final class CourseInfo implements Parcelable {
 
     @Override
     public String toString() {
-        return mTitle;
+        return eTitle;
     }
 
     @Override
@@ -79,20 +86,13 @@ public final class CourseInfo implements Parcelable {
 
         CourseInfo that = (CourseInfo) o;
 
-        return mCourseId.equals(that.mCourseId);
+        return eCourseId.equals(that.eCourseId);
 
     }
 
     @Override
     public int hashCode() {
-        return mCourseId.hashCode();
-    }
-
-    private CourseInfo(Parcel source) {
-        mTitle = source.readString();
-        mCourseId = source.readString();
-        mModules = new ArrayList<>();
-        source.readTypedList(mModules, ModuleInfo.CREATOR);
+        return eCourseId.hashCode();
     }
 
     @Override
@@ -102,8 +102,8 @@ public final class CourseInfo implements Parcelable {
 
     @Override
     public void writeToParcel(Parcel parcel, int i) {
-        parcel.writeString(mTitle);
-        parcel.writeString(mCourseId);
-        parcel.writeTypedList(mModules);
+        parcel.writeString(eTitle);
+        parcel.writeString(eCourseId);
+        parcel.writeTypedList(eModules);
     }
 }

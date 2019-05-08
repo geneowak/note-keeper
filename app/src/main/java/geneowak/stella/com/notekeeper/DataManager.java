@@ -10,8 +10,8 @@ import java.util.List;
 public class DataManager {
     private static DataManager ourInstance = null;
 
-    private List<CourseInfo> mCourses = new ArrayList<>();
-    private List<NoteInfo> mNotes = new ArrayList<>();
+    private List<CourseInfo> eCourses = new ArrayList<>();
+    private List<NoteInfo> eNotes = new ArrayList<>();
 
     private DataManager() {
     }
@@ -34,18 +34,18 @@ public class DataManager {
     }
 
     public List<NoteInfo> getNotes() {
-        return mNotes;
+        return eNotes;
     }
 
     public int createNewNote() {
         NoteInfo note = new NoteInfo(null, null, null);
-        mNotes.add(note);
-        return mNotes.size() - 1;
+        eNotes.add(note);
+        return eNotes.size() - 1;
     }
 
     public int findNote(NoteInfo note) {
-        for (int index = 0; index < mNotes.size(); index++) {
-            if (note.equals(mNotes.get(index)))
+        for (int index = 0; index < eNotes.size(); index++) {
+            if (note.equals(eNotes.get(index)))
                 return index;
         }
 
@@ -53,15 +53,15 @@ public class DataManager {
     }
 
     public void removeNote(int index) {
-        mNotes.remove(index);
+        eNotes.remove(index);
     }
 
     public List<CourseInfo> getCourses() {
-        return mCourses;
+        return eCourses;
     }
 
     public CourseInfo getCourse(String id) {
-        for (CourseInfo course : mCourses) {
+        for (CourseInfo course : eCourses) {
             if (id.equals(course.getCourseId()))
                 return course;
         }
@@ -70,7 +70,7 @@ public class DataManager {
 
     public List<NoteInfo> getNotes(CourseInfo course) {
         ArrayList<NoteInfo> notes = new ArrayList<>();
-        for (NoteInfo note : mNotes) {
+        for (NoteInfo note : eNotes) {
             if (course.equals(note.getCourse()))
                 notes.add(note);
         }
@@ -79,7 +79,7 @@ public class DataManager {
 
     public int getNoteCount(CourseInfo course) {
         int count = 0;
-        for (NoteInfo note : mNotes) {
+        for (NoteInfo note : eNotes) {
             if (course.equals(note.getCourse()))
                 count++;
         }
@@ -89,10 +89,10 @@ public class DataManager {
     //region Initialization code
 
     private void initializeCourses() {
-        mCourses.add(initializeCourse1());
-        mCourses.add(initializeCourse2());
-        mCourses.add(initializeCourse3());
-        mCourses.add(initializeCourse4());
+        eCourses.add(initializeCourse1());
+        eCourses.add(initializeCourse2());
+        eCourses.add(initializeCourse3());
+        eCourses.add(initializeCourse4());
     }
 
     public void initializeExampleNotes() {
@@ -102,17 +102,17 @@ public class DataManager {
         course.getModule("android_intents_m01").setComplete(true);
         course.getModule("android_intents_m02").setComplete(true);
         course.getModule("android_intents_m03").setComplete(true);
-        mNotes.add(new NoteInfo(course, "Dynamic intent resolution",
+        eNotes.add(new NoteInfo(course, "Dynamic intent resolution",
                 "Wow, intents allow components to be resolved at runtime"));
-        mNotes.add(new NoteInfo(course, "Delegating intents",
+        eNotes.add(new NoteInfo(course, "Delegating intents",
                 "PendingIntents are powerful; they delegate much more than just a component invocation"));
 
         course = dm.getCourse("android_async");
         course.getModule("android_async_m01").setComplete(true);
         course.getModule("android_async_m02").setComplete(true);
-        mNotes.add(new NoteInfo(course, "Service default threads",
+        eNotes.add(new NoteInfo(course, "Service default threads",
                 "Did you know that by default an Android Service will tie up the UI thread?"));
-        mNotes.add(new NoteInfo(course, "Long running operations",
+        eNotes.add(new NoteInfo(course, "Long running operations",
                 "Foreground Services can be tied to a notification icon"));
 
         course = dm.getCourse("java_lang");
@@ -123,18 +123,18 @@ public class DataManager {
         course.getModule("java_lang_m05").setComplete(true);
         course.getModule("java_lang_m06").setComplete(true);
         course.getModule("java_lang_m07").setComplete(true);
-        mNotes.add(new NoteInfo(course, "Parameters",
+        eNotes.add(new NoteInfo(course, "Parameters",
                 "Leverage variable-length parameter lists"));
-        mNotes.add(new NoteInfo(course, "Anonymous classes",
+        eNotes.add(new NoteInfo(course, "Anonymous classes",
                 "Anonymous classes simplify implementing one-use types"));
 
         course = dm.getCourse("java_core");
         course.getModule("java_core_m01").setComplete(true);
         course.getModule("java_core_m02").setComplete(true);
         course.getModule("java_core_m03").setComplete(true);
-        mNotes.add(new NoteInfo(course, "Compiler options",
+        eNotes.add(new NoteInfo(course, "Compiler options",
                 "The -jar option isn't compatible with with the -cp option"));
-        mNotes.add(new NoteInfo(course, "Serialization",
+        eNotes.add(new NoteInfo(course, "Serialization",
                 "Remember to include SerialVersionUID to assure version compatibility"));
     }
 
