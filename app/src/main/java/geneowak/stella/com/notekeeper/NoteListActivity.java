@@ -9,7 +9,10 @@ import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
 
+import java.util.List;
+
 public class NoteListActivity extends AppCompatActivity {
+    private NoteRecyclerAdapter eNoteRecyclerAdapter;
 
 //    private ArrayAdapter<NoteInfo> eAdapterNotes;
 
@@ -35,6 +38,7 @@ public class NoteListActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
 //        eAdapterNotes.notifyDataSetChanged();
+        eNoteRecyclerAdapter.notifyDataSetChanged();
     }
 
     private void initializeDisplayContent() {
@@ -59,6 +63,11 @@ public class NoteListActivity extends AppCompatActivity {
         final RecyclerView recyclerNotes = findViewById(R.id.list_notes);
         final LinearLayoutManager notesLayoutManager = new LinearLayoutManager(this);
         recyclerNotes.setLayoutManager(notesLayoutManager);
+
+        List<NoteInfo> notes = DataManager.getInstance().getNotes();
+        eNoteRecyclerAdapter = new NoteRecyclerAdapter(this, notes);
+
+        recyclerNotes.setAdapter(eNoteRecyclerAdapter);
     }
 
 }
