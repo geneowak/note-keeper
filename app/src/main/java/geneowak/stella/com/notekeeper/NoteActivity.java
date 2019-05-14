@@ -21,6 +21,7 @@ public class NoteActivity extends AppCompatActivity {
     public static final String ORIGINAL_NOTE_TITLE = "geneowak.stella.com.notekeeper.ORIGINAL_NOTE_TITLE";
     public static final String ORIGINAL_NOTE_TEXT = "geneowak.stella.com.notekeeper.ORIGINAL_NOTE_TEXT";
     public static final int POSITION_NOT_SET = -1;
+    private final DataManager sDataManager = DataManager.getInstance();
     private NoteInfo eNote;
     private boolean eIsNewNote;
     private Spinner eSpinnerCourses;
@@ -41,7 +42,7 @@ public class NoteActivity extends AppCompatActivity {
 
         eSpinnerCourses = findViewById(R.id.spinner_courses);
 
-        List<CourseInfo> courses = DataManager.getInstance().getCourses();
+        List<CourseInfo> courses = sDataManager.getCourses();
         // create adapter to associate list with spinner
         ArrayAdapter<CourseInfo> adapterCourses =
                 new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, courses);
@@ -90,7 +91,7 @@ public class NoteActivity extends AppCompatActivity {
     }
 
     private void displayNote(Spinner spinnerCourses, EditText textNoteTitle, EditText textNoteText) {
-        List<CourseInfo> courses = DataManager.getInstance().getCourses();
+        List<CourseInfo> courses = sDataManager.getCourses();
         int courseIndex = courses.indexOf(eNote.getCourse());
         spinnerCourses.setSelection(courseIndex);
         textNoteTitle.setText(eNote.getTitle());
@@ -106,14 +107,13 @@ public class NoteActivity extends AppCompatActivity {
             createNewNote();
         }
 
-        eNote = DataManager.getInstance().getNotes().get(eNotePosition);
+        eNote = sDataManager.getNotes().get(eNotePosition);
 
         Log.i(TAG, "eNotePosition: " + eNotePosition);
     }
 
     private void createNewNote() {
-        DataManager dm = DataManager.getInstance();
-        eNotePosition = dm.createNewNote();
+        eNotePosition = sDataManager.createNewNote();
 //        eNote = dm.getNotes().get(eNotePosition);
     }
 
@@ -138,9 +138,34 @@ public class NoteActivity extends AppCompatActivity {
         } else if (id == R.id.action_cancel) {
             eIsCancelling = true;
             finish();
+        } else if (id == R.id.action_next) {
+            moveNext();
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        MenuItem menuItem = menu.findItem(R.id.action_next);
+        int lastIndex = sDataManager.getNotes().size() - 1;
+
+        menuItem.setEnabled(eNotePosition < lastIndex);
+
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    private void moveNext() {
+        // first save any changes the user might have made
+        saveNote();
+        // increment note position
+        ++eNotePosition;
+        eNote = sDataManager.getNotes().get(eNotePosition);
+        //first save the current state of the note incase the user cancels
+        saveOriginalNoteValues();
+        displayNote(eSpinnerCourses, eTextNoteTitle, eTextNoteText);
+        // call onPrepareOptionsMenu to invalidate next menu item if last note has been reached
+        invalidateOptionsMenu();
     }
 
     @Override
@@ -149,7 +174,7 @@ public class NoteActivity extends AppCompatActivity {
         if (eIsCancelling) {
             Log.i(TAG, "Cancelling eNote at position: " + eNotePosition);
             if (eIsNewNote) {
-                DataManager.getInstance().removeNote(eNotePosition);
+                sDataManager.removeNote(eNotePosition);
             } else {
                 storePreviousNoteValues();
             }
@@ -161,7 +186,7 @@ public class NoteActivity extends AppCompatActivity {
     }
 
     private void storePreviousNoteValues() {
-        CourseInfo course = DataManager.getInstance().getCourse(eOriginalCourseId);
+        CourseInfo course = sDataManager.getCourse(eOriginalCourseId);
         eNote.setCourse(course);
         eNote.setTitle(eOriginalNoteTitle);
         eNote.setText(eOriginalNoteText);

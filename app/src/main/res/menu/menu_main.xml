@@ -4,7 +4,14 @@
     tools:context="geneowak.stella.com.notekeeper.NoteActivity">
     <item
         android:id="@+id/action_cancel"
-        android:title="@string/action_cancel" />
+        android:icon="@android:drawable/ic_menu_close_clear_cancel"
+        android:title="@string/action_cancel"
+        app:showAsAction="ifRoom|withText" />
+    <item
+        android:id="@+id/action_next"
+        android:icon="@android:drawable/ic_media_next"
+        android:title="@string/action_next"
+        app:showAsAction="ifRoom|withText" />
     <item
         android:id="@+id/action_send_email"
         android:orderInCategory="100"
