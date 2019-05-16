@@ -63,7 +63,8 @@ public class MainActivity extends AppCompatActivity
     private void initializeDisplayContent() {
         eRecyclerItems = findViewById(R.id.list_items);
         eNotesLayoutManager = new LinearLayoutManager(this);
-        eCoursesLayoutManager = new GridLayoutManager(this, 2);
+        eCoursesLayoutManager = new GridLayoutManager(this,
+                getResources().getInteger(R.integer.course_grid_span));
 
         List<NoteInfo> notes = DataManager.getInstance().getNotes();
         eNoteRecyclerAdapter = new NoteRecyclerAdapter(this, notes);
@@ -137,9 +138,9 @@ public class MainActivity extends AppCompatActivity
         } else if (id == R.id.nav_courses) {
             displayCourses();
         } else if (id == R.id.nav_share) {
-            handleSelection("Want to share something!");
+            handleSelection(R.string.nav_share_message);
         } else if (id == R.id.nav_send) {
-            handleSelection("Send");
+            handleSelection(R.string.nav_send_message);
         }
 
         DrawerLayout drawer = findViewById(R.id.drawer_layout);
@@ -147,8 +148,8 @@ public class MainActivity extends AppCompatActivity
         return true;
     }
 
-    private void handleSelection(String message) {
+    private void handleSelection(int message_id) {
         View view = findViewById(R.id.list_items);
-        Snackbar.make(view, message, Snackbar.LENGTH_LONG).show();
+        Snackbar.make(view, message_id, Snackbar.LENGTH_LONG).show();
     }
 }
