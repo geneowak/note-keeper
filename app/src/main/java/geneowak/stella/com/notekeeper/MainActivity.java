@@ -2,6 +2,7 @@ package geneowak.stella.com.notekeeper;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.support.design.widget.FloatingActionButton;
@@ -29,6 +30,7 @@ public class MainActivity extends AppCompatActivity
     private LinearLayoutManager eNotesLayoutManager;
     private CourseRecyclerAdapter eCourseRecyclerAdapter;
     private GridLayoutManager eCoursesLayoutManager;
+    private NoteKeeperOpenHelper eDbOpenHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +38,8 @@ public class MainActivity extends AppCompatActivity
         setContentView(R.layout.activity_main);
         Toolbar toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
+
+        eDbOpenHelper = new NoteKeeperOpenHelper(this);
 
         FloatingActionButton fab = findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -61,6 +65,12 @@ public class MainActivity extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
         initializeDisplayContent();
+    }
+
+    @Override
+    protected void onDestroy() {
+        eDbOpenHelper.close();
+        super.onDestroy();
     }
 
     @Override
@@ -102,6 +112,8 @@ public class MainActivity extends AppCompatActivity
     private void displayNotes() {
         eRecyclerItems.setLayoutManager(eNotesLayoutManager);
         eRecyclerItems.setAdapter(eNoteRecyclerAdapter);
+
+        SQLiteDatabase db = eDbOpenHelper.getReadableDatabase();
 
         selectNavigationMenuItem(R.id.nav_notes);
     }
