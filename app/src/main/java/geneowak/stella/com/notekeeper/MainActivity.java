@@ -100,6 +100,8 @@ public class MainActivity extends AppCompatActivity
         eCoursesLayoutManager = new GridLayoutManager(this,
                 getResources().getInteger(R.integer.course_grid_span));
 
+        DataManager.loadFromDatabase(eDbOpenHelper);
+
         List<NoteInfo> notes = DataManager.getInstance().getNotes();
         eNoteRecyclerAdapter = new NoteRecyclerAdapter(this, notes);
 
