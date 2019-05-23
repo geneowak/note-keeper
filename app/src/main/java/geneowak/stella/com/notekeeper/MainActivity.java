@@ -2,6 +2,7 @@ package geneowak.stella.com.notekeeper;
 
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
@@ -22,6 +23,8 @@ import android.view.View;
 import android.widget.TextView;
 
 import java.util.List;
+
+import geneowak.stella.com.notekeeper.NoteKeeperDatabaseContract.NoteInfoEntry;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -76,8 +79,23 @@ public class MainActivity extends AppCompatActivity
     @Override
     protected void onResume() {
         super.onResume();
-        eNoteRecyclerAdapter.notifyDataSetChanged();
+        loadNotes();
         updateNavHeader();
+    }
+
+    private void loadNotes() {
+        SQLiteDatabase db = eDbOpenHelper.getReadableDatabase();
+
+        String[] noteColumns = {
+                NoteInfoEntry.COLUMN_NOTE_TITLE,
+                NoteInfoEntry.COLUMN_COURSE_ID,
+                NoteInfoEntry._ID};
+        String noteOrderBy = NoteInfoEntry.COLUMN_COURSE_ID + "," + NoteInfoEntry.COLUMN_NOTE_TITLE;
+        Cursor noteCursor = db.query(NoteInfoEntry.TABLE_NAME, noteColumns,
+                null, null, null, null, noteOrderBy);
+
+        eNoteRecyclerAdapter.changeCursor(noteCursor);
+
     }
 
     private void updateNavHeader() {
@@ -102,8 +120,7 @@ public class MainActivity extends AppCompatActivity
 
         DataManager.loadFromDatabase(eDbOpenHelper);
 
-        List<NoteInfo> notes = DataManager.getInstance().getNotes();
-        eNoteRecyclerAdapter = new NoteRecyclerAdapter(this, notes);
+        eNoteRecyclerAdapter = new NoteRecyclerAdapter(this, null);
 
         List<CourseInfo> courses = DataManager.getInstance().getCourses();
         eCourseRecyclerAdapter = new CourseRecyclerAdapter(this, courses);
@@ -115,7 +132,7 @@ public class MainActivity extends AppCompatActivity
         eRecyclerItems.setLayoutManager(eNotesLayoutManager);
         eRecyclerItems.setAdapter(eNoteRecyclerAdapter);
 
-        SQLiteDatabase db = eDbOpenHelper.getReadableDatabase();
+//        SQLiteDatabase db = eDbOpenHelper.getReadableDatabase();
 
         selectNavigationMenuItem(R.id.nav_notes);
     }

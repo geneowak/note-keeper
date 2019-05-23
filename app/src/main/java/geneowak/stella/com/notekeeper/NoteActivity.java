@@ -10,11 +10,11 @@ import android.support.v7.widget.Toolbar;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.widget.ArrayAdapter;
 import android.widget.EditText;
+import android.widget.SimpleCursorAdapter;
 import android.widget.Spinner;
 
-import java.util.List;
+import geneowak.stella.com.notekeeper.NoteKeeperDatabaseContract.CourseInfoEntry;
 
 import static geneowak.stella.com.notekeeper.NoteKeeperDatabaseContract.NoteInfoEntry;
 
@@ -26,7 +26,7 @@ public class NoteActivity extends AppCompatActivity {
     public static final String ORIGINAL_NOTE_TEXT = "geneowak.stella.com.notekeeper.ORIGINAL_NOTE_TEXT";
     public static final int ID_NOT_SET = -1;
     private final DataManager sDataManager = DataManager.getInstance();
-    private NoteInfo eNote;
+    private NoteInfo eNote = new NoteInfo(DataManager.getInstance().getCourses().get(0), "", "");
     private boolean eIsNewNote;
     private Spinner eSpinnerCourses;
     private EditText eTextNoteTitle;
@@ -41,6 +41,7 @@ public class NoteActivity extends AppCompatActivity {
     private int eNoteTitlePos;
     private int eNoteTextPos;
     private int eCourseIdPos;
+    private SimpleCursorAdapter eAdapterCourses;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -53,14 +54,16 @@ public class NoteActivity extends AppCompatActivity {
 
         eSpinnerCourses = findViewById(R.id.spinner_courses);
 
-        List<CourseInfo> courses = sDataManager.getCourses();
         // create adapter to associate list with spinner
-        ArrayAdapter<CourseInfo> adapterCourses =
-                new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, courses);
+        eAdapterCourses = new SimpleCursorAdapter(this, android.R.layout.simple_spinner_item, null,
+                new String[]{CourseInfoEntry.COLUMN_COURSE_TITLE},
+                new int[]{android.R.id.text1}, 0);
         // associate the resource to be used for the dropdown courses
-        adapterCourses.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        eAdapterCourses.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         // associate adapter with spinner
-        eSpinnerCourses.setAdapter(adapterCourses);
+        eSpinnerCourses.setAdapter(eAdapterCourses);
+
+        loadCourseData();
 
         readDisplayStateValues();
 
@@ -78,6 +81,20 @@ public class NoteActivity extends AppCompatActivity {
         }
 
         Log.d(TAG, "onCreate");
+    }
+
+    private void loadCourseData() {
+        SQLiteDatabase db = eDbOpenHelper.getReadableDatabase();
+        String[] courseColumns = {
+                CourseInfoEntry.COLUMN_COURSE_TITLE,
+                CourseInfoEntry.COLUMN_COURSE_ID,
+                CourseInfoEntry._ID
+        };
+
+        Cursor cursor = db.query(CourseInfoEntry.TABLE_NAME, courseColumns,
+                null, null, null, null, CourseInfoEntry.COLUMN_COURSE_TITLE);
+
+        eAdapterCourses.changeCursor(cursor);
     }
 
     private void loadNoteData() {
@@ -140,14 +157,33 @@ public class NoteActivity extends AppCompatActivity {
         String noteTitle = eNoteCursor.getString(eNoteTitlePos);
         String noteText = eNoteCursor.getString(eNoteTextPos);
 
-        List<CourseInfo> courses = sDataManager.getCourses();
-        CourseInfo course = sDataManager.getCourse(courseId);
-        int courseIndex = courses.indexOf(course);
+        int courseIndex = getIndexOfCourseId(courseId);
         eSpinnerCourses.setSelection(courseIndex);
         eTextNoteTitle.setText(noteTitle);
         eTextNoteText.setText(noteText);
 
-        eNote = new NoteInfo(course, noteTitle, noteText);
+//        eNote = new NoteInfo(course, noteTitle, noteText);
+    }
+
+    private int getIndexOfCourseId(String courseId) {
+        Cursor cursor = eAdapterCourses.getCursor();
+        int courseIdPos = cursor.getColumnIndex(CourseInfoEntry.COLUMN_COURSE_ID);
+        int courseRowIndex = 0;
+
+        boolean more = cursor.moveToFirst();
+
+        while (more) {
+
+            String cursorCourseId = cursor.getString(courseIdPos);
+            if (courseId.equals(cursorCourseId)) {
+                break;
+            }
+
+            courseRowIndex++;
+            more = cursor.moveToNext();
+        }
+
+        return courseRowIndex;
     }
 
     private void readDisplayStateValues() {
