@@ -1,6 +1,10 @@
 package geneowak.stella.com.notekeeper;
 
+import android.annotation.SuppressLint;
+import android.app.LoaderManager;
+import android.content.CursorLoader;
 import android.content.Intent;
+import android.content.Loader;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
@@ -18,7 +22,9 @@ import geneowak.stella.com.notekeeper.NoteKeeperDatabaseContract.CourseInfoEntry
 
 import static geneowak.stella.com.notekeeper.NoteKeeperDatabaseContract.NoteInfoEntry;
 
-public class NoteActivity extends AppCompatActivity {
+public class NoteActivity extends AppCompatActivity implements LoaderManager.LoaderCallbacks<Cursor> {
+    public static final int LOADER_NOTES = 0;
+    public static final int LOADER_COURSES = 1;
     public final String TAG = getClass().getSimpleName();
     public static final String NOTE_ID = "geneowak.stella.com.notekeeper.NOTE_ID";
     public static final String ORIGINAL_NOTE_COURSE_ID = "geneowak.stella.com.notekeeper.ORIGINAL_NOTE_COURSE_ID";
@@ -42,6 +48,8 @@ public class NoteActivity extends AppCompatActivity {
     private int eNoteTextPos;
     private int eCourseIdPos;
     private SimpleCursorAdapter eAdapterCourses;
+    private boolean eCoursesQueryFinished;
+    private boolean eNotesQueryFinished;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,15 +71,9 @@ public class NoteActivity extends AppCompatActivity {
         // associate adapter with spinner
         eSpinnerCourses.setAdapter(eAdapterCourses);
 
-        loadCourseData();
+        getLoaderManager().initLoader(LOADER_COURSES, null, this);
 
         readDisplayStateValues();
-
-        eTextNoteTitle = findViewById(R.id.text_note_title);
-        eTextNoteText = findViewById(R.id.text_note_text);
-
-        if (!eIsNewNote)
-            loadNoteData();
 
         if (savedInstanceState == null) {
             saveOriginalNoteValues();
@@ -79,6 +81,12 @@ public class NoteActivity extends AppCompatActivity {
             restoreOriginalNoteValues(savedInstanceState);
 
         }
+
+        eTextNoteTitle = findViewById(R.id.text_note_title);
+        eTextNoteText = findViewById(R.id.text_note_text);
+
+        if (!eIsNewNote)
+            getLoaderManager().initLoader(LOADER_NOTES, null, this);
 
         Log.d(TAG, "onCreate");
     }
@@ -99,9 +107,6 @@ public class NoteActivity extends AppCompatActivity {
 
     private void loadNoteData() {
         SQLiteDatabase db = eDbOpenHelper.getReadableDatabase();
-
-        String courseId = "android_intents";
-        String titleStart = "dynamic";
 
         String selection = NoteInfoEntry._ID + " = ? ";
 
@@ -299,5 +304,96 @@ public class NoteActivity extends AppCompatActivity {
         // only start activity if the system has apps that can handle it
         if (intent.resolveActivity(getPackageManager()) != null)
             startActivity(intent);
+    }
+
+    @Override
+    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+        CursorLoader loader = null;
+        if (id == LOADER_NOTES)
+            loader = createLoaderNotes();
+        else if (id == LOADER_COURSES)
+            loader = createLoaderCourses();
+        return loader;
+    }
+
+    @SuppressLint("StaticFieldLeak")
+    private CursorLoader createLoaderCourses() {
+        eCoursesQueryFinished = false;
+        return new CursorLoader(this) {
+            @Override
+            public Cursor loadInBackground() {
+                SQLiteDatabase db = eDbOpenHelper.getReadableDatabase();
+                String[] courseColumns = {
+                        CourseInfoEntry.COLUMN_COURSE_TITLE,
+                        CourseInfoEntry.COLUMN_COURSE_ID,
+                        CourseInfoEntry._ID
+                };
+
+                return db.query(CourseInfoEntry.TABLE_NAME, courseColumns,
+                        null, null, null, null, CourseInfoEntry.COLUMN_COURSE_TITLE);
+            }
+        };
+    }
+
+    @SuppressLint("StaticFieldLeak")
+    private CursorLoader createLoaderNotes() {
+        eNotesQueryFinished = false;
+        return new CursorLoader(this) {
+            @Override
+            public Cursor loadInBackground() {
+                SQLiteDatabase db = eDbOpenHelper.getReadableDatabase();
+
+                String selection = NoteInfoEntry._ID + " = ? ";
+
+                String[] selectionArgs = {Integer.toString(eNoteId)};
+
+                String[] noteColumns = {
+                        NoteInfoEntry.COLUMN_NOTE_TITLE,
+                        NoteInfoEntry.COLUMN_NOTE_TEXT,
+                        NoteInfoEntry.COLUMN_COURSE_ID};
+
+                return db.query(NoteInfoEntry.TABLE_NAME, noteColumns,
+                        selection, selectionArgs, null, null, null);
+            }
+        };
+    }
+
+    @Override
+    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
+        if (loader.getId() == LOADER_NOTES)
+            loadFinishedNotes(data);
+        else if (loader.getId() == LOADER_COURSES) {
+            eAdapterCourses.changeCursor(data);
+            eCoursesQueryFinished = true;
+            displayNotesWhenQueriesFinished();
+        }
+    }
+
+    private void loadFinishedNotes(Cursor data) {
+        eNoteCursor = data;
+        eNoteTitlePos = eNoteCursor.getColumnIndex(NoteInfoEntry.COLUMN_NOTE_TITLE);
+        eNoteTextPos = eNoteCursor.getColumnIndex(NoteInfoEntry.COLUMN_NOTE_TEXT);
+        eCourseIdPos = eNoteCursor.getColumnIndex(NoteInfoEntry.COLUMN_COURSE_ID);
+        eNoteCursor.moveToNext();
+        eNotesQueryFinished = true;
+
+        displayNotesWhenQueriesFinished();
+    }
+
+    private void displayNotesWhenQueriesFinished() {
+        if (eNotesQueryFinished && eCoursesQueryFinished)
+            displayNote();
+    }
+
+    @Override
+    public void onLoaderReset(Loader<Cursor> loader) {
+        if (loader.getId() == LOADER_NOTES) {
+            if (eNoteCursor != null)
+                eNoteCursor.close();
+            else if (loader.getId() == LOADER_COURSES) {
+                eAdapterCourses.changeCursor(null);
+            }
+
+        }
     }
 }
