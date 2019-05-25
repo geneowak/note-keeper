@@ -10,6 +10,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TextView;
 
+import geneowak.stella.com.notekeeper.NoteKeeperDatabaseContract.CourseInfoEntry;
 import geneowak.stella.com.notekeeper.NoteKeeperDatabaseContract.NoteInfoEntry;
 
 /**
@@ -35,7 +36,7 @@ public class NoteRecyclerAdapter extends RecyclerView.Adapter<NoteRecyclerAdapte
         if (eCursor == null)
             return;
         // Get column indexes from eCursor
-        eCoursePos = eCursor.getColumnIndex(NoteInfoEntry.COLUMN_COURSE_ID);
+        eCoursePos = eCursor.getColumnIndex(CourseInfoEntry.COLUMN_COURSE_TITLE);
         eNoteTitlePos = eCursor.getColumnIndex(NoteInfoEntry.COLUMN_NOTE_TITLE);
         eIdPos = eCursor.getColumnIndex(NoteInfoEntry._ID);
     }
