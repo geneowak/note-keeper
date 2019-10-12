@@ -364,23 +364,16 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
         return loader;
     }
 
-    @SuppressLint("StaticFieldLeak")
     private CursorLoader createLoaderCourses() {
         eCoursesQueryFinished = false;
-        return new CursorLoader(this) {
-            @Override
-            public Cursor loadInBackground() {
-                SQLiteDatabase db = eDbOpenHelper.getReadableDatabase();
-                String[] courseColumns = {
-                        CourseInfoEntry.COLUMN_COURSE_TITLE,
-                        CourseInfoEntry.COLUMN_COURSE_ID,
-                        CourseInfoEntry._ID
-                };
-
-                return db.query(CourseInfoEntry.TABLE_NAME, courseColumns,
-                        null, null, null, null, CourseInfoEntry.COLUMN_COURSE_TITLE);
-            }
+        Uri uri = Uri.parse("content://geneowak.stella.com.notekeeper.provider");
+        String[] courseColumns = {
+                CourseInfoEntry.COLUMN_COURSE_TITLE,
+                CourseInfoEntry.COLUMN_COURSE_ID,
+                CourseInfoEntry._ID
         };
+
+        return new CursorLoader(this, uri, courseColumns, null, null, CourseInfoEntry.COLUMN_COURSE_TITLE);
     }
 
     @SuppressLint("StaticFieldLeak")
@@ -415,6 +408,8 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
             eCoursesQueryFinished = true;
             displayNotesWhenQueriesFinished();
         }
+
+
     }
 
     private void loadFinishedNotes(Cursor data) {
