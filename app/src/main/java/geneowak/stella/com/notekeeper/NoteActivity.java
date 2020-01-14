@@ -21,6 +21,7 @@ import android.widget.SimpleCursorAdapter;
 import android.widget.Spinner;
 
 import geneowak.stella.com.notekeeper.NoteKeeperDatabaseContract.CourseInfoEntry;
+import geneowak.stella.com.notekeeper.NoteKeeperProviderContract.Courses;
 
 import static geneowak.stella.com.notekeeper.NoteKeeperDatabaseContract.NoteInfoEntry;
 
@@ -366,14 +367,14 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
 
     private CursorLoader createLoaderCourses() {
         eCoursesQueryFinished = false;
-        Uri uri = Uri.parse("content://geneowak.stella.com.notekeeper.provider");
+        Uri uri = Courses.CONTENT_URI;
         String[] courseColumns = {
-                CourseInfoEntry.COLUMN_COURSE_TITLE,
-                CourseInfoEntry.COLUMN_COURSE_ID,
-                CourseInfoEntry._ID
+                Courses.COLUMN_COURSE_TITLE,
+                Courses.COLUMN_COURSE_ID,
+                Courses._ID
         };
 
-        return new CursorLoader(this, uri, courseColumns, null, null, CourseInfoEntry.COLUMN_COURSE_TITLE);
+        return new CursorLoader(this, uri, courseColumns, null, null, Courses.COLUMN_COURSE_TITLE);
     }
 
     @SuppressLint("StaticFieldLeak")

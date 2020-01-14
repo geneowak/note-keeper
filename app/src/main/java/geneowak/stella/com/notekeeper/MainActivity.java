@@ -1,6 +1,5 @@
 package geneowak.stella.com.notekeeper;
 
-import android.annotation.SuppressLint;
 import android.app.LoaderManager;
 import android.content.CursorLoader;
 import android.content.Intent;
@@ -28,8 +27,8 @@ import android.widget.TextView;
 
 import java.util.List;
 
-import geneowak.stella.com.notekeeper.NoteKeeperDatabaseContract.CourseInfoEntry;
 import geneowak.stella.com.notekeeper.NoteKeeperDatabaseContract.NoteInfoEntry;
+import geneowak.stella.com.notekeeper.NoteKeeperProviderContract.Notes;
 
 public class MainActivity extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener, LoaderManager.LoaderCallbacks<Cursor> {
@@ -229,38 +228,21 @@ public class MainActivity extends AppCompatActivity
     public Loader<Cursor> onCreateLoader(int id, Bundle bundle) {
         CursorLoader loader = null;
         if (id == LOADER_NOTES) {
-            loader = createLoaderNotes();
+            final String[] noteColumns = {
+                    Notes._ID,
+                    Notes.COLUMN_NOTE_TITLE,
+                    Notes.COLUMN_COURSE_TITLE
+            };
+
+            final String noteOrderBy = Notes.COLUMN_COURSE_TITLE +
+                    "," + Notes.COLUMN_NOTE_TITLE;
+
+            loader = new CursorLoader(this, Notes.CONTENT_EXPANDED_URI, noteColumns,
+                    null, null, noteOrderBy);
         }
 
 
         return loader;
-    }
-
-    @SuppressLint("StaticFieldLeak")
-    private CursorLoader createLoaderNotes() {
-        return new CursorLoader(this) {
-            @Override
-            public Cursor loadInBackground() {
-                SQLiteDatabase db = eDbOpenHelper.getReadableDatabase();
-                final String[] noteColumns = {
-                        NoteInfoEntry.getQName(NoteInfoEntry._ID),
-                        NoteInfoEntry.COLUMN_NOTE_TITLE,
-                        CourseInfoEntry.COLUMN_COURSE_TITLE
-                };
-
-                final String noteOrderBy = CourseInfoEntry.COLUMN_COURSE_TITLE +
-                        "," + NoteInfoEntry.COLUMN_NOTE_TITLE;
-
-                // note_info JOIN course_info ON note_info.course_id = course_info.course_id
-                final String tablesWithJoin = NoteInfoEntry.TABLE_NAME + " JOIN " +
-                        CourseInfoEntry.TABLE_NAME + " ON " +
-                        NoteInfoEntry.getQName(NoteInfoEntry.COLUMN_COURSE_ID) + " = " +
-                        CourseInfoEntry.getQName(CourseInfoEntry.COLUMN_COURSE_ID);
-
-                return db.query(tablesWithJoin, noteColumns,
-                        null, null, null, null, noteOrderBy);
-            }
-        };
     }
 
     @Override
