@@ -22,6 +22,7 @@ import android.widget.Spinner;
 
 import geneowak.stella.com.notekeeper.NoteKeeperDatabaseContract.CourseInfoEntry;
 import geneowak.stella.com.notekeeper.NoteKeeperProviderContract.Courses;
+import geneowak.stella.com.notekeeper.NoteKeeperProviderContract.Notes;
 
 import static geneowak.stella.com.notekeeper.NoteKeeperDatabaseContract.NoteInfoEntry;
 
@@ -53,6 +54,7 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
     private SimpleCursorAdapter eAdapterCourses;
     private boolean eCoursesQueryFinished;
     private boolean eNotesQueryFinished;
+    private Uri eNoteUri;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -210,13 +212,13 @@ public class NoteActivity extends AppCompatActivity implements LoaderManager.Loa
 
     private void createNewNote() {
         ContentValues values = new ContentValues();
-        values.put(NoteInfoEntry.COLUMN_COURSE_ID, "");
-        values.put(NoteInfoEntry.COLUMN_NOTE_TITLE, "");
-        values.put(NoteInfoEntry.COLUMN_NOTE_TEXT, "");
+        values.put(Notes.COLUMN_COURSE_ID, "");
+        values.put(Notes.COLUMN_NOTE_TITLE, "");
+        values.put(Notes.COLUMN_NOTE_TEXT, "");
 
-        SQLiteDatabase db = eDbOpenHelper.getWritableDatabase();
-
-        eNoteId = (int) db.insert(NoteInfoEntry.TABLE_NAME, null, values);
+        // calling the content resolver on the main thread can have negative effects on the ui
+        // performance preferrably perform them on a background thread
+        eNoteUri = getContentResolver().insert(Notes.CONTENT_URI, values);
     }
 
     @Override
